@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Jan 16 09:46:06 2024
-
-@author: David
-"""
+# -- FITS image analysis script -- #
+# takes histogram of FITS data, isolates background peak
+# fits Gaussian distribuition to background
+# determines background - object threshold using standard dev.
+# masks out astronomical objects using threshold
 
 from astropy.io import fits
 import numpy as np 
