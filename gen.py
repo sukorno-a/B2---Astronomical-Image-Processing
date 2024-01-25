@@ -35,7 +35,7 @@ X, Y = np.meshgrid(X, Y)
 
 # Mean vector and covariance matrix
 mu = np.array([0., 0.])
-Sigma = np.array([[ 1. , -0.5], [-0.5,  1.]])
+Sigma = np.array([[ 1. , -0.5], [-0.5,  0.3]])
 
 # Pack X and Y into a single 3-dimensional array
 pos = np.empty(X.shape + (2,))
@@ -72,7 +72,7 @@ fig = plt.figure()
 # ax1.set_ylabel(r'y')
 
 ax = fig.add_subplot(1,1,1)
-ax.contourf(X, Y, Z, zdir='z', offset=0, cmap=cm.viridis)
+ax.contourf(X, Y, Z, zdir='z', offset=0, cmap=cm.gray)
 ax.grid(False)
 ax.set_xticks([])
 ax.set_yticks([])
@@ -93,7 +93,7 @@ X, Y = np.meshgrid(X, Y)
 
 # Mean vector and covariance matrix
 mu = np.array([0., 0.])
-Sigma = np.array([[ 1. , -0.5], [-0.5,  1.]])
+Sigma = np.array([[ 1.5 , 0.3], [-2.,  5.6]])
 
 # Pack X and Y into a single 3-dimensional array
 pos = np.empty(X.shape + (2,))
@@ -116,6 +116,16 @@ def multivariate_gaussian(pos, mu, Sigma):
 Z = multivariate_gaussian(pos, mu, Sigma)
 Z = Z/np.max(Z)
 
+fig=plt.figure()
+ax = fig.add_subplot(1,1,1)
+ax.contourf(X, Y, Z, zdir='z', offset=0, cmap=cm.inferno)
+ax.grid(False)
+ax.set_xticks([])
+ax.set_yticks([])
+ax.set_xlabel(r'x')
+ax.set_ylabel(r'y')
+plt.show()
+
 length = len(Z)
 for y in range(length):
     for x in range(length):
@@ -126,11 +136,11 @@ for y in range(length):
             Z[y][x] = 0
 print(Z)
 
-new_inferno = cm.get_cmap('gray', 2)# visualize with the new_inferno colormaps
+binary_gray = cm.get_cmap('gray', 2)# visualize with the new_inferno colormaps
 
 fig=plt.figure()
 ax = fig.add_subplot(1,1,1)
-ax.contourf(X, Y, Z, zdir='z', offset=0, cmap=new_inferno)
+ax.contourf(X, Y, Z, zdir='z', offset=0, cmap=binary_gray)
 ax.grid(False)
 ax.set_xticks([])
 ax.set_yticks([])
@@ -141,21 +151,91 @@ plt.show()
 
 # generate multiple randomly distributed galaxies
 
-def galaxy():
-    sigma_val = random.uniform(-1, 1)
-    sigma = np.array([[1.0,sigma_val], [sigma_val, 1.0]])
+def galaxy(N):
+    sigma_1 = random.uniform(-1,1)
+    sigma_2 = random.uniform(-1,1)
+    sigma_3 = random.uniform(-1, 1)
+    sigma_4 = random.uniform(-1, 1)
+    sigma = np.array([[sigma_1,sigma_2], [sigma_3, sigma_4]])
 
-    N = 100
-    X = np.linspace(-2, 2, N)
-    Y = np.linspace(-2, 2, N)
-    X, Y = np.meshgrid(X, Y)
+    mu_x = random.uniform(-N,N)
+    mu_y = random.uniform(-N,N)
+    mu = np.array([mu_x,mu_y])
+    return mu, sigma
 
-    # Mean vector and covariance matrix
-    mu = np.array([0., 0.])
-    Sigma = np.array([[ 1. , -0.5], [-0.5,  1.]])
+# Our 2-dimensional distribution will be over variables X and Y
+N = 1000
+X = np.linspace(-20, 20, N)
+Y = np.linspace(-20, 20, N)
+X, Y = np.meshgrid(X, Y)
 
-    # Pack X and Y into a single 3-dimensional array
-    pos = np.empty(X.shape + (2,))
-    pos[:, :, 0] = X
-    pos[:, :, 1] = Y
+# Pack X and Y into a single 3-dimensional array
+pos = np.empty(X.shape + (2,))
+pos[:, :, 0] = X
+pos[:, :, 1] = Y
+
+def multivariate_gaussian(pos, mu, Sigma):
+    """Return the multivariate Gaussian distribution on array pos."""
+
+    n = mu.shape[0]
+    Sigma_det = np.linalg.det(Sigma)
+    Sigma_inv = np.linalg.inv(Sigma)
+    N = np.sqrt((2*np.pi)**n * Sigma_det)
+    # This einsum call calculates (x-mu)T.Sigma-1.(x-mu) in a vectorized
+    # way across all the input variables.
+    fac = np.einsum('...k,kl,...l->...', pos-mu, Sigma_inv, pos-mu)
+
+    return np.exp(-fac / 2) / N
+
+no_of_galaxies = int(input("How many galaxies would you like to generate today?"))
+gaussians_list = []
+for i in range(no_of_galaxies):
+    print("Generating galaxy no. "+str(i+1)+"...")
+    mu,sigma = galaxy(20)
+    Z = multivariate_gaussian(pos, mu, Sigma)
+    Z = Z/np.max(Z)
+    length = len(Z)
+    for y in range(length):
+        for x in range(length):
+            rand_num = random.random()
+            if Z[y][x] > rand_num:
+                Z[y][x] = 1
+            else:
+                Z[y][x] = 0
+    gaussians_list.append(Z)
+
+space = np.zeros((N,N))
+for i in gaussians_list:
+    space += i
+
+length = len(space)
+for y in range(length):
+    for x in range(length):
+        if space[y][x] > 1:
+            space[y][x] = 1
+        else:
+            pass
+
+fig=plt.figure()
+ax = fig.add_subplot(1,1,1)
+mappable=ax.contourf(X, Y, space, zdir='z', offset=0, cmap=cm.inferno)
+fig.colorbar(mappable)
+ax.grid(False)
+ax.set_xticks([])
+ax.set_yticks([])
+ax.set_xlabel(r'x')
+ax.set_ylabel(r'y')
+plt.show()
+
+binary_gray = cm.get_cmap('gray', 2)# visualize with the new_inferno colormaps
+
+fig=plt.figure()
+ax = fig.add_subplot(1,1,1)
+ax.contourf(X, Y, space, zdir='z', offset=0, cmap=binary_gray)
+ax.grid(False)
+ax.set_xticks([])
+ax.set_yticks([])
+ax.set_xlabel(r'x')
+ax.set_ylabel(r'y')
+plt.show()
         
