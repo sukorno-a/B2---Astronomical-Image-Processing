@@ -282,4 +282,4 @@ for feature in range(1, 2):
     # plt.show()
 
 plt.hist(bics)
-plt.show
+plt.show()
