@@ -195,8 +195,9 @@ center = (bins[:-1] + bins[1:]) / 2
 
 N_m = np.cumsum(m_hist)
 
-plt.plot(center,np.log10(N_m),)
-plt.plot(center,0.6*center-6)
+plt.plot(center,np.log10(N_m),label="log10(N(m))")
+plt.plot(center,0.6*center-6,label="0.6m-6")
 plt.xlabel("Object Magnitude")
 plt.ylabel("Log10(N(m)), N(m) is cum. freq.")
+plt.legend()
 plt.show()
