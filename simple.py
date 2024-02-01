@@ -20,7 +20,7 @@ def gaussian(x, μ, σ, A):
    return (A / (σ * np.sqrt(2 * np.pi))) * np.exp(-((x - μ) ** 2) / (2 * σ** 2))
 
 '''Opens the data and the header.'''
-hdulist = fits.open("Fits_Data\mosaic.fits")
+hdulist = fits.open("Fits_Data/mosaic.fits")
 data = hdulist[0].data
 header = hdulist[0].header
 
@@ -57,7 +57,7 @@ s = [[0,1,0],
 
 #Labels the array based on the previous binary array (connecting adjacent points)
 labeled_data, num_features = ndimage.label(binary_check,s)
-print(num_features)
+print("Number of features found:",num_features)
 labeled_areas = np.array(ndimage.sum(binary_check, labeled_data, np.arange(labeled_data.max()+1)))
 
 #Removes all groups that are less than a desired number of pixels.
@@ -67,7 +67,7 @@ remove_small_area = mask1[labeled_data.ravel()].reshape(labeled_data.shape)
 
 #Relabels the data after removing small pixels.
 final_labeled_data, num_features = ndimage.label(remove_small_area,s)
-print(num_features)
+print("Number of features larger than 50 pixels:",num_features)
 labeled_areas = np.array(ndimage.sum(binary_check, final_labeled_data, np.arange(final_labeled_data.max()+1)))
 
 # mask2 = labeled_areas < 1000
@@ -95,7 +95,7 @@ blurred = ndimage.median_filter(background, size=20)
 
 
 '''Saves and shows the "background" image.'''
-hdubackground = fits.open("Fits_Data\\background.fits", mode='update')
+hdubackground = fits.open("Fits_Data/background.fits", mode='update')
 plt.imshow(blurred)
 plt.show()
 hdubackground[0].data = blurred
