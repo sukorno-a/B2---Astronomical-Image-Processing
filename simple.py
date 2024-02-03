@@ -16,6 +16,7 @@ from scipy.optimize import minimize
 from scipy.ndimage import median_filter
 import random
 import pandas as pd
+import math
 
 def gaussian(x, μ, σ, A):
    return (A / (σ * np.sqrt(2 * np.pi))) * np.exp(-((x - μ) ** 2) / (2 * σ** 2))
@@ -102,7 +103,7 @@ blurred = ndimage.median_filter(background, size=20)
 
 
 '''Saves and shows the "background" image.'''
-hdubackground = fits.open("Fits_Data\\background.fits", mode='update')
+hdubackground = fits.open("Fits_Data/background.fits", mode='update')
 plt.imshow(blurred)
 plt.show()
 hdubackground[0].data = blurred
@@ -228,19 +229,19 @@ magnitude_array = np.array(magnitude_values)
 
 sorted_values = [galaxies[k] for k in sorted_galaxies]
 
-# print(sorted_galaxies)
-# print(sorted_values)
+print(sorted_galaxies)
+print(sorted_values)
 
-# print(galaxies[4])
+print(galaxies[4])
 
 
-# for i in range(1,27):
-#     feature = sorted_df.loc[feature]
-#     print(feature)
-#     galaxy = galaxies.get(feature)
-#     sample = image[galaxy[5]:galaxy[6],galaxy[7]:galaxy[8]]
-#     plt.imshow(image[galaxy[5]:galaxy[6],galaxy[7]:galaxy[8]])
-#     plt.show()
+for i in range(1,27):
+    feature = sorted_df.loc[feature]
+    print(feature)
+    galaxy = galaxies.get(feature)
+    sample = image[galaxy[5]:galaxy[6],galaxy[7]:galaxy[8]]
+    plt.imshow(image[galaxy[5]:galaxy[6],galaxy[7]:galaxy[8]])
+    plt.show()
 
 plt.hist(magnitude_array,50)
 
@@ -290,17 +291,17 @@ print(np.max(num_galaxies_array))
 print(np.sum(num_galaxies_array))
 
 '''Finds the number of counts in each object and converts it to magnitude.'''
-# counts = np.zeros(num_features+1)
-# counts[0] = 1
-# for i in range(height):
-#     for j in range(width):
-#         feature = final_labeled_data[i][j]
-#         if feature==0:
-#             pass
-#         else:
-#             counts[feature] = counts[feature] + image[i][j]
-# mag_i = -2.5*np.log10(counts/720)
-# m = mag_i + ZPinst
+counts = np.zeros(num_features+1)
+counts[0] = 1
+for i in range(height):
+    for j in range(width):
+        feature = final_labeled_data[i][j]
+        if feature==0:
+            pass
+        else:
+            counts[feature] = counts[feature] + image[i][j]
+mag_i = -2.5*np.log10(counts/720)
+m = mag_i + ZPinst
 
 plt.hist(magnitude_array,50)
 plt.xlabel("Object Magnitude")
@@ -312,12 +313,30 @@ width = 0.7 * (bins[1] - bins[0])
 center = (bins[:-1] + bins[1:]) / 2
 
 N_m = np.cumsum(m_hist)
+log_N_m = np.log10(N_m)
+root_n = np.sqrt(counts)
 
 plt.plot(center,np.log10(N_m),label="log10(N(m))")
 plt.plot(center,0.6*center-12,label="0.6m - 12")
 plt.plot(center,0.5*center-10,label="0.5m - 10")
 plt.plot(center,0.4*center-8,label="0.4m - 8")
 plt.plot(center,0.3*center-5.5,label="0.3m - 5.5")
+plt.xlabel("Object Magnitude")
+plt.ylabel("Log10(N(m)), N(m) is cum. freq.")
+plt.legend()
+plt.show()
+
+def linear(x,m,c):
+    return x*m + c
+
+print(len(m),len(m_hist),len(log_N_m),len(root_n))
+
+popt, pcov = curve_fit(linear, center, log_N_m, p0=(0.6,-6))
+m_fit, c_fit = popt
+y_fit = linear(center, m_fit, c_fit)
+plt.plot(center,log_N_m,label="Log10(N(m))")
+plt.plot(center,y_fit,label="Linear Fit")
+plt.plot(center,0.6*center-6,label="0.6m-6")
 plt.xlabel("Object Magnitude")
 plt.ylabel("Log10(N(m)), N(m) is cum. freq.")
 plt.legend()
