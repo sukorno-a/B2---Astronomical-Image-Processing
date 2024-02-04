@@ -56,7 +56,7 @@ def image_binary(data, threshold, min_pixel, s = [[0,1,0],[1,1,1],[0,1,0]]):
     return(binary_check, final_labeled_data, num_features)
     
 '''Opens the data and the header.'''
-hdulist = fits.open("Fits_Data\mosaic.fits")
+hdulist = fits.open("Fits_Data/mosaic.fits")
 data = hdulist[0].data
 data_header = hdulist[0].header
 
